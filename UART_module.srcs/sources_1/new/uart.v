@@ -38,7 +38,7 @@ modMCounter #
     .clk(clk),
     .reset(reset),
     .q(),
-    .o_maxTick(tick)
+    .max_tick(tick)
 );
 
 uartRX #
@@ -57,8 +57,8 @@ uartRX #
 
 fifoBuffer #
 (
-    .DBIT(DBIT),
-    .ADDRESS(FIFO_W)
+    .B(DBIT),
+    .W(FIFO_W)
 ) fifoBufferRXUnit
 (
     .clk(clk),
@@ -68,7 +68,7 @@ fifoBuffer #
     .w_data(rx_data_out),
     .empty(rx_empty),
     .full(),
-    .r_data(tx_fifo_out)
+    .r_data(r_data)
 );
 
 

@@ -1,4 +1,4 @@
-module uartRx#
+module uartRX#
 (
     parameter DBIT = 8,
     parameter SB_TICK = 16

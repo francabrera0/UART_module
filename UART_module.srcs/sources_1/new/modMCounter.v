@@ -27,7 +27,8 @@ end
 
 //Next-state logic
 assign rNext = (rReg == (M-1)) ? 0 : rReg + 1;
-assign max_tick = (rReg == (M-1)) ? 1'b1 : 1'b0;
+
 assign q = rReg;
+assign max_tick = (rReg == (M-1)) ? 1'b1 : 1'b0;
 
 endmodule
