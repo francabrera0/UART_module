@@ -21,85 +21,85 @@ localparam readWriteOp = 2'b11;
 
 
 //Signal declaration
-reg [B-1 : 0] arrayRegister [(2**W)-1 : 0];
-reg [W-1 : 0] writePointerRegister; 
-reg [W-1 : 0] writePointerNext; 
-reg [W-1 : 0] writePointerSuccessive;
+reg [B-1 : 0] array_reg [(2**W)-1 : 0];
+reg [W-1 : 0] w_ptr_reg; 
+reg [W-1 : 0] w_ptr_next; 
+reg [W-1 : 0] w_ptr_succ;
 
-reg [W-1 : 0] readPointerRegister;
-reg [W-1 : 0] readPointerNext;
-reg [W-1 : 0] readPointerSuccessive;
+reg [W-1 : 0] r_ptr_reg;
+reg [W-1 : 0] r_ptr_next;
+reg [W-1 : 0] r_ptr_succ;
 
-reg fullRegister;
-reg emptyRegister;
-reg fullNext;
-reg emptyNext;
+reg full_reg;
+reg empty_reg;
+reg full_next;
+reg empty_next;
 
 wire writeEnable;
 
 //Register file write operation
 always @(posedge clk) begin
     if(writeEnable) begin
-        arrayRegister[writePointerRegister] <= w_data;
+        array_reg[w_ptr_reg] <= w_data;
     end
 end
 
 //Register file read operation
-assign r_data = arrayRegister[readPointerRegister];
+assign r_data = array_reg[r_ptr_reg];
 
 //Write enable only when FIFO is not full
-assign writeEnable = wr & ~fullRegister;
+assign writeEnable = wr & ~full_reg;
 
 //Fifo control logic
 //Register for read and write pointers
 always @(posedge clk) begin
     if(reset) begin
-        writePointerRegister <= 0;
-        readPointerRegister <= 0;
-        fullRegister <= 0;
-        emptyRegister <= 0;
+        w_ptr_reg <= 0;
+        r_ptr_reg <= 0;
+        full_reg <= 0;
+        empty_reg <= 1;
     end
     else begin
-        writePointerRegister <= writePointerNext;
-        readPointerRegister <= readPointerNext;
-        fullRegister <= fullNext;
-        emptyRegister <= emptyNext;
+        w_ptr_reg <= w_ptr_next;
+        r_ptr_reg <= r_ptr_next;
+        full_reg <= full_next;
+        empty_reg <= empty_next;
     end
 end
 
 //Next-state logic for read and write pointers
 always @(*) begin
     //Successive pointer values
-    writePointerSuccessive = writePointerRegister + 1;
-    readPointerSuccessive = readPointerRegister + 1; 
+    w_ptr_succ = w_ptr_reg + 1;
+    r_ptr_succ = r_ptr_reg + 1; 
     //Default: keep old values
-    writePointerNext = writePointerRegister;
-    readPointerNext = readPointerRegister;
-    fullNext = fullRegister;
-    emptyNext = emptyRegister;
+    w_ptr_next = w_ptr_reg;
+    r_ptr_next = r_ptr_reg;
+    full_next = full_reg;
+    empty_next = empty_reg;
 
     case ({wr, rd})
         //nop:
         readOp:
-            if (~emptyRegister) begin
-                readPointerNext = readPointerSuccessive;
-                fullNext = 1'b0;
-                if (readPointerSuccessive==writePointerRegister) begin
-                    emptyNext = 1'b1;
+            if (~empty_reg) begin
+                r_ptr_next = r_ptr_succ;
+                full_next = 1'b0;
+                if (r_ptr_succ==w_ptr_reg) begin
+                    empty_next = 1'b1;
                 end
             end
         writeOp:
-            if (~fullRegister) begin
-                writePointerNext = writePointerSuccessive;
-                emptyNext = 1'b0;
-                if (writePointerSuccessive==readPointerRegister) begin
-                    fullNext = 1'b1;
+            if (~full_reg) begin
+                w_ptr_next = w_ptr_succ;
+                empty_next = 1'b0;
+                if (w_ptr_succ==r_ptr_reg) begin
+                    full_next = 1'b1;
                 end
             end
         readWriteOp:
             begin
-                writePointerNext = writePointerSuccessive;
-                readPointerNext = readPointerSuccessive; 
+                w_ptr_next = w_ptr_succ;
+                r_ptr_next = r_ptr_succ; 
             end 
         //default: ???? 
 
@@ -107,7 +107,7 @@ always @(*) begin
 end
 
 //Output
-assign full = fullRegister;
-assign empty = emptyRegister;
+assign full = full_reg;
+assign empty = empty_reg;
 
 endmodule
