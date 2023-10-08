@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module fifoBuffer#
 (
     parameter B = 8,
@@ -101,7 +103,11 @@ always @(*) begin
                 w_ptr_next = w_ptr_succ;
                 r_ptr_next = r_ptr_succ; 
             end 
-        //default: ???? 
+        default:
+            begin
+                w_ptr_next = w_ptr_next;
+                r_ptr_next = r_ptr_next;
+            end
 
     endcase
 end

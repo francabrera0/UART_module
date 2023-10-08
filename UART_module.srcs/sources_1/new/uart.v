@@ -1,9 +1,11 @@
+`timescale 1ns / 1ns
+
 module uart#
 (
     parameter DBIT = 8,
     parameter SB_TICK = 16,
-    parameter DVSR = 163,
-    parameter DVSR_BIT = 8,
+    parameter DVSR = 27,
+    parameter DVSR_BIT = 5,
     parameter FIFO_W = 2
 )
 (

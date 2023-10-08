@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module modMCounter#
 (
     parameter N = 4, //Number of bits in counter

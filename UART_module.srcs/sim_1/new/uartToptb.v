@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ns
 module uartToptb();
 
     localparam DBIT = 8;
@@ -52,7 +52,7 @@ module uartToptb();
         wr_uart = 0;
         w_data = 8'b0;
 
-        #20 reset = 0;
+        #1000 reset = 0;
 
         w_data = 0'hAA;
         wr_uart = 1;
