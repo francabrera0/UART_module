@@ -46,7 +46,7 @@ module uartToptb();
     end
     
     reg [31:0] seed;
-    reg [3:0] testData [DBIT-1 : 0];
+    reg [DBIT-1:0] testData [3:0];
     reg [2:0] i;
 
     initial begin
