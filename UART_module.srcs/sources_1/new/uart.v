@@ -4,9 +4,9 @@ module uart#
 (
     parameter DBIT = 8,
     parameter SB_TICK = 16,
-    parameter DVSR = 27,
-    parameter DVSR_BIT = 5,
-    parameter FIFO_W = 2
+    parameter DVSR = 326,
+    parameter DVSR_BIT = 9,
+    parameter FIFO_W = 2        
 )
 (
     input wire clk,
