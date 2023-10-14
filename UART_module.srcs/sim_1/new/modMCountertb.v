@@ -2,24 +2,22 @@
 
 module modMCountertb();
 
-    localparam N = 4;
-    localparam M = 10;
+    localparam COUNTER_BITS = 4;
+    localparam COUNTER_MOD = 10;
 
     reg clk;
     reg reset;
-    wire max_tick;
-    wire [N-1 : 0] q;
+    wire maxTick;
 
     modMCounter #
     (
-        .N(N),
-        .M(M)
+        .COUNTER_BITS(COUNTER_BITS),
+        .COUNTER_MOD(COUNTER_MOD)
     )baudRateGen
     (
-        .clk(clk),
-        .reset(reset),
-        .max_tick(max_tick),
-        .q(q)
+        .i_clk(clk),
+        .i_reset(reset),
+        .o_counterMaxTick(maxTick)
     );
 
     always begin
@@ -31,9 +29,7 @@ module modMCountertb();
         reset = 1;
         #20;
         reset = 0;
-
         #500;
-
     end
 
 
