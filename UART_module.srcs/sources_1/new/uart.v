@@ -1,109 +1,106 @@
-`timescale 1ns / 1ns
-
 module uart#
 (
-    parameter DBIT = 8,
+    parameter DATA_LEN = 8,
     parameter SB_TICK = 16,
-    parameter DVSR = 326,
-    parameter DVSR_BIT = 9,
-    parameter FIFO_W = 2        
+    parameter COUNTER_MOD = 326,
+    parameter COUNTER_BITS = 9,
+    parameter PTR_LEN = 2        
 )
 (
-    input wire clk,
-    input wire reset,
-    input wire rd_uart,
-    input wire wr_uart,
-    input wire rx,
-    input wire [DBIT-1 : 0] w_data,
-    output wire tx_full,
-    output wire rx_empty,
-    output wire tx,
-    output wire [DBIT-1 : 0] r_data
+    input wire i_clk,
+    input wire i_reset,
+    input wire i_readUart,
+    input wire i_writeUart,
+    input wire i_uartRx,
+    input wire [DATA_LEN-1 : 0] i_dataToWrite,
+    output wire o_txFull,
+    output wire o_rxEmpty,
+    output wire o_uartTx,
+    output wire [DATA_LEN-1 : 0] o_dataToRead
 );
 
 //Signal declaration
 wire tick;
-wire rx_done_tick;
-wire tx_done_tick;
-wire tx_empty;
-wire tx_fifo_not_empty;
-wire [DBIT-1 : 0] tx_fifo_out;
-wire [DBIT-1 : 0] rx_data_out;
+wire rxDone;
+wire txDone;
+wire txEmpty;
+wire txNotEmpty;
+wire [DATA_LEN-1 : 0] txFifoOut;
+wire [DATA_LEN-1 : 0] rxDataOut;
 
-//body
+
 modMCounter #
 (
-    .M(DVSR),
-    .N(DVSR_BIT)
+    .COUNTER_MOD(COUNTER_MOD),
+    .COUNTER_BITS(COUNTER_BITS)
 ) baudRateGeneratorUnit
 (
-    .clk(clk),
-    .reset(reset),
-    .q(),
-    .max_tick(tick)
+    .i_clk(i_clk),
+    .i_reset(i_reset),
+    .o_counterMaxTick(tick)
 );
 
 uartRX #
 (
-    .DBIT(DBIT),
+    .DATA_LEN(DATA_LEN),
     .SB_TICK(SB_TICK)
 ) uartRxUnit
 (
-    .clk(clk),
-    .reset(reset),
-    .rx(rx),
-    .s_tick(tick),
-    .rx_done_tick(rx_done_tick),
-    .dout(rx_data_out)
+    .i_clk(i_clk),
+    .i_reset(i_reset),
+    .i_uartRx(i_uartRx),
+    .i_tick(tick),
+    .o_rxDone(rxDone),
+    .o_rxDataOut(rxDataOut)
 );
 
 fifoBuffer #
 (
-    .B(DBIT),
-    .W(FIFO_W)
+    .DATA_LEN(DATA_LEN),
+    .PTR_LEN(PTR_LEN)
 ) fifoBufferRXUnit
 (
-    .clk(clk),
-    .reset(reset),
-    .rd(rd_uart),
-    .wr(rx_done_tick),
-    .w_data(rx_data_out),
-    .empty(rx_empty),
-    .full(),
-    .r_data(r_data)
+    .i_clk(i_clk),
+    .i_reset(i_reset),
+    .i_fifoRead(i_readUart),
+    .i_fifoWrite(rxDone),
+    .i_dataToWrite(rxDataOut),
+    .o_fifoEmpty(o_rxEmpty),
+    .o_fifoFull(),
+    .o_dataToRead(o_dataToRead)
 );
 
 fifoBuffer #
 (
-    .B(DBIT),
-    .W(FIFO_W)
+    .DATA_LEN(DATA_LEN),
+    .PTR_LEN(PTR_LEN)
 ) fifoBufferTXUnit
 (
-    .clk(clk),
-    .reset(reset),
-    .rd(tx_done_tick),
-    .wr(wr_uart),
-    .w_data(w_data),
-    .empty(tx_empty),
-    .full(tx_full),
-    .r_data(tx_fifo_out)
+    .i_clk(i_clk),
+    .i_reset(i_reset),
+    .i_fifoRead(txDone),
+    .i_fifoWrite(i_writeUart),
+    .i_dataToWrite(i_dataToWrite),
+    .o_fifoEmpty(txEmpty),
+    .o_fifoFull(o_txFull),
+    .o_dataToRead(txFifoOut)
 );
 
 uartTX #
 (
-    .DBIT(DBIT),
+    .DATA_LEN(DATA_LEN),
     .SB_TICK(SB_TICK)
 ) uartTxUnit
 (
-    .clk(clk),
-    .reset(reset),
-    .tx_start(tx_fifo_not_empty),
-    .s_tick(tick),
-    .din(tx_fifo_out),
-    .tx_done_tick(tx_done_tick),
-    .tx(tx)
+    .i_clk(i_clk),
+    .i_reset(i_reset),
+    .i_txStart(txNotEmpty),
+    .i_tick(tick),
+    .i_txDataIn(txFifoOut),
+    .o_txDone(txDone),
+    .o_uartTx(o_uartTx)
 );
 
-assign tx_fifo_not_empty = ~tx_empty;
+assign txNotEmpty = ~txEmpty;
 
 endmodule

@@ -1,119 +1,117 @@
-`timescale 1ns / 1ns
-
 module fifoBuffer#
 (
-    parameter B = 8,
-    parameter W = 4
+    parameter DATA_LEN = 8,
+    parameter PTR_LEN = 4
 )
 (
-    input wire clk,     
-    input wire reset,
-    input wire rd,            
-    input wire wr,
-    input wire [B-1 : 0] w_data,
-    output wire empty,
-    output wire full,
-    output wire [B-1 : 0] r_data
+    input wire i_clk,     
+    input wire i_reset,
+    input wire i_fifoRead,            
+    input wire i_fifoWrite,
+    input wire [DATA_LEN-1 : 0] i_dataToWrite,
+    output wire o_fifoEmpty,
+    output wire o_fifoFull,
+    output wire [DATA_LEN-1 : 0] o_dataToRead
 );
 
-localparam nop = 2'b00;
-localparam readOp = 2'b01;
-localparam writeOp = 2'b10;
-localparam readWriteOp = 2'b11;
+localparam NOP = 2'b00;
+localparam READ = 2'b01;
+localparam WRITE = 2'b10;
+localparam READWRITE = 2'b11;
 
 
 //Signal declaration
-reg [B-1 : 0] array_reg [(2**W)-1 : 0];
-reg [W-1 : 0] w_ptr_reg; 
-reg [W-1 : 0] w_ptr_next; 
-reg [W-1 : 0] w_ptr_succ;
+reg [DATA_LEN-1 : 0] arrayReg [(2**PTR_LEN)-1 : 0];
+reg [PTR_LEN-1 : 0] writePtrReg; 
+reg [PTR_LEN-1 : 0] writePtrNext; 
+reg [PTR_LEN-1 : 0] writePtrSucc;
 
-reg [W-1 : 0] r_ptr_reg;
-reg [W-1 : 0] r_ptr_next;
-reg [W-1 : 0] r_ptr_succ;
+reg [PTR_LEN-1 : 0] readPtrReg;
+reg [PTR_LEN-1 : 0] readPtrNext;
+reg [PTR_LEN-1 : 0] readPtrSucc;
 
-reg full_reg;
-reg empty_reg;
-reg full_next;
-reg empty_next;
+reg fullReg;
+reg fullNext;
+reg emptyReg;
+reg emptyNext;
 
 wire writeEnable;
 
 //Register file write operation
-always @(posedge clk) begin
+always @(posedge i_clk) begin
     if(writeEnable) begin
-        array_reg[w_ptr_reg] <= w_data;
+        arrayReg[writePtrReg] <= i_dataToWrite;
     end
 end
 
 //Register file read operation
-assign r_data = array_reg[r_ptr_reg];
+assign o_dataToRead = arrayReg[readPtrReg];
 
-//Write enable only when FIFO is not full
-assign writeEnable = wr & ~full_reg;
+//Write enable only when FIFO is not o_fifoFull
+assign writeEnable = i_fifoWrite & ~fullReg;
 
 //Fifo control logic
 //Register for read and write pointers
-always @(posedge clk) begin
-    if(reset) begin
-        w_ptr_reg <= 0;
-        r_ptr_reg <= 0;
-        full_reg <= 0;
-        empty_reg <= 1;
+always @(posedge i_clk) begin
+    if(i_reset) begin
+        writePtrReg <= 0;
+        readPtrReg <= 0;
+        fullReg <= 0;
+        emptyReg <= 1;
     end
     else begin
-        w_ptr_reg <= w_ptr_next;
-        r_ptr_reg <= r_ptr_next;
-        full_reg <= full_next;
-        empty_reg <= empty_next;
+        writePtrReg <= writePtrNext;
+        readPtrReg <= readPtrNext;
+        fullReg <= fullNext;
+        emptyReg <= emptyNext;
     end
 end
 
 //Next-state logic for read and write pointers
 always @(*) begin
     //Successive pointer values
-    w_ptr_succ = w_ptr_reg + 1;
-    r_ptr_succ = r_ptr_reg + 1; 
+    writePtrSucc = writePtrReg + 1;
+    readPtrSucc = readPtrReg + 1; 
     //Default: keep old values
-    w_ptr_next = w_ptr_reg;
-    r_ptr_next = r_ptr_reg;
-    full_next = full_reg;
-    empty_next = empty_reg;
+    writePtrNext = writePtrReg;
+    readPtrNext = readPtrReg;
+    fullNext = fullReg;
+    emptyNext = emptyReg;
 
-    case ({wr, rd})
-        //nop:
-        readOp:
-            if (~empty_reg) begin
-                r_ptr_next = r_ptr_succ;
-                full_next = 1'b0;
-                if (r_ptr_succ==w_ptr_reg) begin
-                    empty_next = 1'b1;
+    case ({i_fifoWrite, i_fifoRead})
+        //NOP:
+        READ:
+            if (~emptyReg) begin
+                readPtrNext = readPtrSucc;
+                fullNext = 1'b0;
+                if (readPtrSucc==writePtrReg) begin
+                    emptyNext = 1'b1;
                 end
             end
-        writeOp:
-            if (~full_reg) begin
-                w_ptr_next = w_ptr_succ;
-                empty_next = 1'b0;
-                if (w_ptr_succ==r_ptr_reg) begin
-                    full_next = 1'b1;
+        WRITE:
+            if (~fullReg) begin
+                writePtrNext = writePtrSucc;
+                emptyNext = 1'b0;
+                if (writePtrSucc==readPtrReg) begin
+                    fullNext = 1'b1;
                 end
             end
-        readWriteOp:
+        READWRITE:
             begin
-                w_ptr_next = w_ptr_succ;
-                r_ptr_next = r_ptr_succ; 
+                writePtrNext = writePtrSucc;
+                readPtrNext = readPtrSucc; 
             end 
         default:
             begin
-                w_ptr_next = w_ptr_next;
-                r_ptr_next = r_ptr_next;
+                writePtrNext = writePtrNext;
+                readPtrNext = readPtrNext;
             end
 
     endcase
 end
 
 //Output
-assign full = full_reg;
-assign empty = empty_reg;
+assign o_fifoFull = fullReg;
+assign o_fifoEmpty = emptyReg;
 
 endmodule

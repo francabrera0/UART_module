@@ -1,126 +1,128 @@
-`timescale 1ns / 1ns
-
 module uartTX#
 (
-    parameter DBIT = 8,
+    parameter DATA_LEN = 8,
     parameter SB_TICK = 16
 )
 (
-    input wire clk,
-    input wire reset,
-    input wire tx_start,
-    input wire s_tick,
-    input wire [DBIT-1 : 0] din,
-    output reg tx_done_tick,
-    output wire tx
+    input wire i_clk,
+    input wire i_reset,
+    input wire i_txStart,
+    input wire i_tick,
+    input wire [DATA_LEN-1 : 0] i_txDataIn,
+    output reg o_txDone,
+    output wire o_uartTx
 );
 
 //symbolic state declaration
-localparam [1:0] idle = 2'b00;
-localparam [1:0] start = 2'b01;
-localparam [1:0] data = 2'b10;
-localparam [1:0] stop = 2'b11;
+localparam [1:0] IDLE = 2'b00;
+localparam [1:0] START = 2'b01;
+localparam [1:0] DATA = 2'b10;
+localparam [1:0] STOP = 2'b11;
 
 //signal declaration
-reg [1:0] state_reg;
-reg [1:0] state_next;
-reg [3:0] s_reg;
-reg [3:0] s_next;
-reg [2:0] n_reg;
-reg [2:0] n_next;
-reg [DBIT-1:0] b_reg;
-reg [DBIT-1:0] b_next;
-reg tx_reg;
-reg tx_next;
+reg [1:0] stateReg;
+reg [1:0] stateNext;
 
-//Finite State Machine with Data (state and data registers)
-always @(posedge clk) begin
-    if(reset) begin
-        state_reg <= idle;
-        s_reg <= 0;
-        n_reg <= 0;
-        b_reg <= 0;
-        tx_reg <= 1'b1;
+reg [3:0] ticksReg;
+reg [3:0] ticksNext;
+
+reg [2:0] sendBitsReg;
+reg [2:0] sendBitsNext;
+
+reg [DATA_LEN-1:0] sendByteReg;
+reg [DATA_LEN-1:0] sendByteNext;
+
+reg txReg;
+reg txNext;
+
+//Finite State Machine with Data (state and DATA registers)
+always @(posedge i_clk) begin
+    if(i_reset) begin
+        stateReg <= IDLE;
+        ticksReg <= 0;
+        sendBitsReg <= 0;
+        sendByteReg <= 0;
+        txReg <= 1'b1;
     end
     else begin
-        state_reg <= state_next;
-        s_reg <= s_next;
-        n_reg <= n_next;
-        b_reg <= b_next;
-        tx_reg <= tx_next;
+        stateReg <= stateNext;
+        ticksReg <= ticksNext;
+        sendBitsReg <= sendBitsNext;
+        sendByteReg <= sendByteNext;
+        txReg <= txNext;
     end
 end
 
 //Finite State Machine with Data (next state logic and functional units)
 always @(*) begin
-    state_next = state_reg;
-    tx_done_tick = 1'b0;
-    s_next = s_reg;
-    n_next = n_reg;
-    b_next = b_reg;
-    tx_next = tx_reg;
+    stateNext = stateReg;
+    o_txDone = 1'b0;
+    ticksNext = ticksReg;
+    sendBitsNext = sendBitsReg;
+    sendByteNext = sendByteReg;
+    txNext = txReg;
 
-    case (state_reg)
-        idle: begin
-            tx_next = 1'b1;
-            if(tx_start) begin
-                state_next = start;
-                s_next = 0;
-                b_next = din;
+    case (stateReg)
+        IDLE: begin
+            txNext = 1'b1;
+            if(i_txStart) begin
+                stateNext = START;
+                ticksNext = 0;
+                sendByteNext = i_txDataIn;
             end
         end
         
-        start: begin
-            tx_next = 1'b0;
-            if (s_tick) begin
-                if (s_reg == 15) begin
-                    state_next = data;
-                    s_next = 0;
-                    n_next = 0;
+        START: begin
+            txNext = 1'b0;
+            if (i_tick) begin
+                if (ticksReg == 15) begin
+                    stateNext = DATA;
+                    ticksNext = 0;
+                    sendBitsNext = 0;
                 end
                 else begin
-                    s_next = s_reg + 1;
+                    ticksNext = ticksReg + 1;
                 end
             end
         end
 
-        data: begin
-            tx_next = b_reg[0];
-            if (s_tick) begin
-                if(s_reg==15) begin
-                    s_next = 0;
-                    b_next = b_reg >> 1;
-                    if (n_reg==(DBIT-1)) begin
-                        state_next = stop;
+        DATA: begin
+            txNext = sendByteReg[0];
+            if (i_tick) begin
+                if(ticksReg==15) begin
+                    ticksNext = 0;
+                    sendByteNext = sendByteReg >> 1;
+                    if (sendBitsReg==(DATA_LEN-1)) begin
+                        stateNext = STOP;
                     end
                     else begin
-                        n_next = n_reg + 1;
+                        sendBitsNext = sendBitsReg + 1;
                     end
                 end
                 else begin
-                    s_next = s_reg + 1;
+                    ticksNext = ticksReg + 1;
                 end
             end
         end
 
-        stop: begin
-            tx_next = 1'b1;
-            if (s_tick) begin
-                if (s_reg==(SB_TICK-1)) begin
-                    state_next = idle;
-                    tx_done_tick = 1'b1;
+        STOP: begin
+            txNext = 1'b1;
+            if (i_tick) begin
+                if (ticksReg==(SB_TICK-1)) begin
+                    stateNext = IDLE;
+                    o_txDone = 1'b1;
                 end
                 else begin
-                    s_next = s_reg + 1;
+                    ticksNext = ticksReg + 1;
                 end
             end
         end
         default: begin
-            state_next = idle;
+            stateNext = IDLE;
         end
     endcase
 end
 
-assign tx = tx_reg;
+assign o_uartTx = txReg;
 
 endmodule

@@ -2,37 +2,37 @@
 
 module fifoBuffertb();
 
-    localparam B = 8;
-    localparam W = 2;
+    localparam DATA_LEN = 8;
+    localparam PTR_LEN = 2;
 
     reg clk;     
     reg reset;
-    reg rd;            
-    reg wr;
-    reg [B-1 : 0] w_data;
-    wire empty;
-    wire full;
-    wire [B-1 : 0] r_data;
+    reg fifoRead;            
+    reg fifoWrite;
+    reg [DATA_LEN-1 : 0] dataToWrite;
+    wire fifoEmpty;
+    wire fifoFull;
+    wire [DATA_LEN-1 : 0] dataToRead;
 
-    reg [B-1 : 0] dataA = 0'hAA;
-    reg [B-1 : 0] dataB = 0'h55;
-    reg [B-1 : 0] dataC = 0'hff;
-    reg [B-1 : 0] dataD = 0'h22;
+    reg [DATA_LEN-1 : 0] dataA = 8'hAA;
+    reg [DATA_LEN-1 : 0] dataB = 8'h55;
+    reg [DATA_LEN-1 : 0] dataC = 8'hff;
+    reg [DATA_LEN-1 : 0] dataD = 8'h22;
 
     fifoBuffer #
     (
-        .B(B),
-        .W(W)
+        .DATA_LEN(DATA_LEN),
+        .PTR_LEN(PTR_LEN)
     )fifoBufferUnit
     ( 
-        .clk(clk),
-        .reset(reset),
-        .rd(rd),
-        .wr(wr),
-        .w_data(w_data),
-        .empty(empty),
-        .full(full),
-        .r_data(r_data)
+        .i_clk(clk),
+        .i_reset(reset),
+        .i_fifoRead(fifoRead),
+        .i_fifoWrite(fifoWrite),
+        .i_dataToWrite(dataToWrite),
+        .o_fifoEmpty(fifoEmpty),
+        .o_fifoFull(fifoFull),
+        .o_dataToRead(dataToRead)
     );
 
     always begin
@@ -41,36 +41,40 @@ module fifoBuffertb();
 
     initial begin
         clk = 0;
-        wr = 0;
-        rd = 0;
+        fifoWrite = 0;
+        fifoRead = 0;
         reset = 1;
         #20
         reset = 0;
 
-        w_data = dataA;
-        wr = 1;
+        dataToWrite = dataA;
+        fifoWrite = 1;
         #20;
-        wr = 0;
-        w_data = dataB;
-        wr = 1;
+        fifoWrite = 0;
+        dataToWrite = dataB;
+        fifoWrite = 1;
         #20;
-        wr = 0;
-        w_data = dataC;
-        wr = 1;
+        fifoWrite = 0;
+        dataToWrite = dataC;
+        fifoWrite = 1;
         #20;
-        wr = 0;
-        w_data = dataD;
-        wr = 1;
+        fifoWrite = 0;
+        dataToWrite = dataD;
+        fifoWrite = 1;
         #20;
-        wr = 0;
+        fifoWrite = 0;
         #20;
-        rd = 1;
+        fifoRead = 1;
         #20;
-        rd = 0;
+        fifoRead = 0;
         #20;
-        rd = 1;
+        fifoRead = 1;
         #20;
-        rd = 0;
+        fifoRead = 0;
+        #20;
+        fifoRead = 1;
+        #20;
+        fifoRead = 0;
 
     end
 
