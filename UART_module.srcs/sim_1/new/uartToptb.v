@@ -4,8 +4,8 @@ module uartToptb();
 
     localparam DATA_LEN = 8;
     localparam SB_TICK = 16;
-    localparam COUNTER_MOD = 27;
-    localparam COUNTER_BITS = 5;
+    localparam COUNTER_MOD = 326;
+    localparam COUNTER_BITS = 9;
     localparam PTR_LEN = 2;
 
     reg clk;
@@ -43,7 +43,7 @@ module uartToptb();
     assign uartRx = uartTx;
 
     always begin
-        #10 clk = ~clk;
+        #5 clk = ~clk;
     end
     
     reg [31:0] seed;
@@ -74,9 +74,9 @@ module uartToptb();
             testData[i] = $random(seed);
             dataToWrite = testData[i];
             writeUart = 1;
-            #20;
+            #10;
             writeUart = 0;
-            #20;
+            #10;
         end //End for
         
         #20
@@ -86,7 +86,7 @@ module uartToptb();
         end
         
         //Wait data transfer
-        #400000
+        #2100000
         
         if(rxEmpty) begin
             $error("Rx FIFO empty after recieving data");
@@ -100,9 +100,9 @@ module uartToptb();
                 $error("Data uartRx different from uartTx, %d != %d", dataToRead, testData[i]); 
             end
             readUart = 1;
-            #20;
+            #10;
             readUart = 0;
-            #50000;
+            #2000000;
         end //End for
         
         if(rxEmpty != 1'b1) begin
