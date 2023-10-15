@@ -10,23 +10,23 @@ reg clk;
 reg reset;
 reg [DATA_LEN-1:0] aluResult;
 
-wire fifoRxReadOut;
-wire fifoTxWriteOut;
-wire [DATA_LEN-1:0] dataToWriteOut;
-wire [OP_LEN-1:0] aluOpSelector;
+wire fifoRxRead;
+wire fifoTxWrite;
+wire [DATA_LEN-1:0] dataToWrite;
+wire [OP_LEN-1:0] opSelector;
 wire [DATA_LEN-1:0] operandA;
 wire [DATA_LEN-1:0] operandB;
 
-reg fifoRxWriteIn; //used to store data in fifo
-reg [DATA_LEN-1:0] fifoRxDataWriteIn;
+reg fifoRxWrite; //used to store data in fifo
+reg [DATA_LEN-1:0] fifoRxDataToWrite;
 
-wire fifoRxEmptyOut;
-wire [DATA_LEN-1:0] fifoRxDataToReadOut;
+wire fifoRxEmpty;
+wire [DATA_LEN-1:0] fifoRxDataToRead;
 
-reg fifoTxReadIn; //Used to see result
+reg fifoTxRead; //Used to see result
 
-wire fifoTxFullOut;
-wire [DATA_LEN-1:0] fifoTxDataToReadOut;
+wire fifoTxFull;
+wire [DATA_LEN-1:0] fifoTxDataToRead;
 
 
 
@@ -39,18 +39,18 @@ aluUartInterface#
     .i_clk(clk),
     .i_reset(reset),
     .i_aluResult(aluResult),
-    .i_dataToRead(fifoRxDataToReadOut),
-    .i_fifoRxEmpty(fifoRxEmptyOut),
-    .i_fifoTxFull(fifoTxFullOut),
+    .i_dataToRead(fifoRxDataToRead),
+    .i_fifoRxEmpty(fifoRxEmpty),
+    .i_fifoTxFull(fifoTxFull),
     .i_aluOverflow(),
     .i_aluZero(),
     .i_txDone(),
     .i_rxDone(),
 
-    .o_fifoRxRead(fifoRxReadOut),
-    .o_fifoTxWrite(fifoTxWriteOut),
-    .o_dataToWrite(dataToWriteOut),
-    .o_aluOpSelector(aluOpSelector),
+    .o_fifoRxRead(fifoRxRead),
+    .o_fifoTxWrite(fifoTxWrite),
+    .o_dataToWrite(dataToWrite),
+    .o_aluOpSelector(opSelector),
     .o_aluOperandA(operandA),
     .o_aluOperandB(operandB)
 );
@@ -63,12 +63,12 @@ fifoBuffer#
 (
     .i_clk(clk),     
     .i_reset(reset),
-    .i_fifoRead(fifoRxReadOut),            
-    .i_fifoWrite(fifoRxWriteIn),
-    .i_dataToWrite(fifoRxDataWriteIn),
-    .o_fifoEmpty(fifoRxEmptyOut),
+    .i_fifoRead(fifoRxRead),            
+    .i_fifoWrite(fifoRxWrite),
+    .i_dataToWrite(fifoRxDataToWrite),
+    .o_fifoEmpty(fifoRxEmpty),
     .o_fifoFull(),
-    .o_dataToRead(fifoRxDataToReadOut)
+    .o_dataToRead(fifoRxDataToRead)
 );
 
 
@@ -80,12 +80,12 @@ fifoBuffer#
 (
     .i_clk(clk),     
     .i_reset(reset),
-    .i_fifoRead(fifoTxReadIn),            
-    .i_fifoWrite(fifoTxWriteOut),
-    .i_dataToWrite(dataToWriteOut),
+    .i_fifoRead(fifoTxRead),            
+    .i_fifoWrite(fifoTxWrite),
+    .i_dataToWrite(dataToWrite),
     .o_fifoEmpty(),
-    .o_fifoFull(fifoTxFullOut),
-    .o_dataToRead(fifoTxDataToReadOut)
+    .o_fifoFull(fifoTxFull),
+    .o_dataToRead(fifoTxDataToRead)
 );
 
 
@@ -97,23 +97,23 @@ initial begin
     clk = 0;
     reset = 1;
     aluResult = 8'h03;
-    fifoRxWriteIn = 0; //used to store data in fifo
-    fifoRxDataWriteIn = 0;
-    fifoTxReadIn = 0; //Used to see result
+    fifoRxWrite = 0; //used to store data in fifo
+    fifoRxDataToWrite = 0;
+    fifoTxRead = 0; //Used to see result
 
     #10 reset = 0;
-    fifoRxDataWriteIn = 8'h20;
-    fifoRxWriteIn = 1'b1;
+    fifoRxDataToWrite = 8'h20;
+    fifoRxWrite = 1'b1;
     #10;
-    fifoRxWriteIn = 1'b0;
-    fifoRxDataWriteIn = 8'h01;
-    fifoRxWriteIn = 1'b1;
+    fifoRxWrite = 1'b0;
+    fifoRxDataToWrite = 8'h01;
+    fifoRxWrite = 1'b1;
     #10;
-    fifoRxWriteIn = 1'b0;
-    fifoRxDataWriteIn = 8'h02;
-    fifoRxWriteIn = 1'b1;
+    fifoRxWrite = 1'b0;
+    fifoRxDataToWrite = 8'h02;
+    fifoRxWrite = 1'b1;
     #10;
-    fifoRxWriteIn = 1'b0;
+    fifoRxWrite = 1'b0;
 
 
 end
