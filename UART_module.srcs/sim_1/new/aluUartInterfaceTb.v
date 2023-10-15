@@ -8,7 +8,7 @@ localparam PTR_LEN = 2;
 
 reg clk;
 reg reset;
-reg [DATA_LEN-1:0] aluResult;
+wire [DATA_LEN-1:0] aluResult;
 
 wire fifoRxRead;
 wire fifoTxWrite;
@@ -88,6 +88,20 @@ fifoBuffer#
     .o_dataToRead(fifoTxDataToRead)
 );
 
+alu#
+(
+    .DATA_LEN(DATA_LEN),
+    .OP_LEN(OP_LEN)  
+) aluUnit
+( 
+    .i_operandA(operandA),
+    .i_operandB(operandB),
+    .i_opSelector(opSelector),
+    .o_aluResult(aluResult),
+    .o_zero(),
+    .o_overFlow()
+); 
+
 
 always begin
     #5 clk = ~clk; 
@@ -96,7 +110,6 @@ end
 initial begin
     clk = 0;
     reset = 1;
-    aluResult = 8'h03;
     fifoRxWrite = 0; //used to store data in fifo
     fifoRxDataToWrite = 0;
     fifoTxRead = 0; //Used to see result
@@ -106,11 +119,11 @@ initial begin
     fifoRxWrite = 1'b1;
     #10;
     fifoRxWrite = 1'b0;
-    fifoRxDataToWrite = 8'h01;
+    fifoRxDataToWrite = 8'h05;
     fifoRxWrite = 1'b1;
     #10;
     fifoRxWrite = 1'b0;
-    fifoRxDataToWrite = 8'h02;
+    fifoRxDataToWrite = 8'h0a;
     fifoRxWrite = 1'b1;
     #10;
     fifoRxWrite = 1'b0;
