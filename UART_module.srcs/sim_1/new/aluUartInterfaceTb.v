@@ -16,6 +16,7 @@ wire [DATA_LEN-1:0] dataToWrite;
 wire [OP_LEN-1:0] opSelector;
 wire [DATA_LEN-1:0] operandA;
 wire [DATA_LEN-1:0] operandB;
+wire validFlag;
 
 reg fifoRxWrite; //used to store data in fifo
 reg [DATA_LEN-1:0] fifoRxDataToWrite;
@@ -27,7 +28,6 @@ reg fifoTxRead; //Used to see result
 
 wire fifoTxFull;
 wire [DATA_LEN-1:0] fifoTxDataToRead;
-
 
 
 aluUartInterface#
@@ -52,7 +52,9 @@ aluUartInterface#
     .o_dataToWrite(dataToWrite),
     .o_aluOpSelector(opSelector),
     .o_aluOperandA(operandA),
-    .o_aluOperandB(operandB)
+    .o_aluOperandB(operandB),
+    .o_validFlag(validFlag)
+
 );
 
 fifoBuffer#
@@ -127,7 +129,30 @@ initial begin
     fifoRxWrite = 1'b1;
     #10;
     fifoRxWrite = 1'b0;
+    fifoRxDataToWrite = 8'hd0;
+    fifoRxWrite = 1'b1;
+    #10;
+    fifoRxWrite = 1'b0;
 
+    fifoRxDataToWrite = 8'h22;
+    fifoRxWrite = 1'b1;
+    #10;
+    fifoRxWrite = 1'b0;
+    fifoRxDataToWrite = 8'h0a;
+    fifoRxWrite = 1'b1;
+    #10;
+    fifoRxWrite = 1'b0;
+    fifoRxDataToWrite = 8'h05;
+    fifoRxWrite = 1'b1;
+    #10;
+    fifoRxWrite = 1'b0;
+    fifoRxDataToWrite = 8'hd2;
+    fifoRxWrite = 1'b1;
+    #10;
+    fifoRxWrite = 1'b0;
+
+    #80;
+    fifoTxRead = 1'b1;
 
 end
 
