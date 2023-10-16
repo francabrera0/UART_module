@@ -12,7 +12,6 @@ module aluUartInterface#
     input wire i_fifoTxFull,
     input wire i_aluOverflow,
     input wire i_aluZero,
-    input wire i_txDone,
     input wire i_rxDone,
 
     output wire o_fifoRxRead,
@@ -44,6 +43,8 @@ reg [DATA_LEN-1:0] operandBReg, operandBNext;
 reg [DATA_LEN-1:0] resultReg, resultNext;
 reg [DATA_LEN-1:0] crcReg, crcNext;
 
+reg auxReg, auxNext;
+
 wire [DATA_LEN-1:0] crc;
 
 
@@ -57,6 +58,7 @@ always @(posedge i_clk) begin
         operandBReg <= {DATA_LEN{1'b0}};
         resultReg <= {DATA_LEN{1'b0}};
         crcReg <= {DATA_LEN{1'b0}};
+        auxReg <= 1'b0;
     end
     else begin
         stateReg <= stateNext;
@@ -67,6 +69,7 @@ always @(posedge i_clk) begin
         operandBReg <= operandBNext;
         resultReg <= resultNext;
         crcReg <= crcNext;
+        auxReg <= auxNext;
     end
 end
 
@@ -79,38 +82,61 @@ always @(*) begin
     operandBNext = operandBReg;
     resultNext = resultReg;
     crcNext = crcReg;
+    auxNext = auxReg;
 
     case (stateReg)
         IDLE: begin
             fifoTxWriteNext = 1'b0;    
             if(~i_fifoRxEmpty) begin
                 stateNext = OPSELECTOR;
-                fifoRxReadNext = 1'b1;
             end
         end
-
+        
         OPSELECTOR: begin
-            if(~i_fifoRxEmpty) begin
+            if(i_rxDone) begin
+                fifoRxReadNext = 1'b1;
+                auxNext = 1'b1;
+            end
+            else begin
+                fifoRxReadNext = 0'b0;
+            end
+            if(~i_fifoRxEmpty && auxReg) begin
                 stateNext = OPERANDA;
                 opSelectorNext = i_dataToRead[OP_LEN-1:0];
-                fifoRxReadNext = 1'b1;
+                fifoRxReadNext = 1'b0;
+                auxNext = 1'b0;
             end
         end 
 
         OPERANDA: begin
-            if(~i_fifoRxEmpty) begin
+            if(i_rxDone) begin
+                fifoRxReadNext = 1'b1;
+                auxNext = 1'b1;
+            end
+            else begin
+                fifoRxReadNext = 0'b0;
+            end
+            if(~i_fifoRxEmpty && auxReg) begin
                 stateNext = OPERANDB;
                 operandANext = i_dataToRead;
-                fifoRxReadNext = 1'b1;
+                fifoRxReadNext = 1'b0;
+                auxNext = 1'b0;
             end
-            
         end
 
         OPERANDB: begin
-            if(~i_fifoRxEmpty) begin
+            if(i_rxDone) begin
+                fifoRxReadNext = 1'b1;
+                auxNext = 1'b1;
+            end
+            else begin
+                fifoRxReadNext = 0'b0;
+            end
+            if(~i_fifoRxEmpty && auxReg) begin
                 stateNext = CRC;
                 operandBNext = i_dataToRead;
-                fifoRxReadNext = 1'b1;
+                fifoRxReadNext = 1'b0;
+                auxNext = 1'b0;
             end
         end
 
@@ -118,11 +144,13 @@ always @(*) begin
             if(~i_fifoRxEmpty) begin
                 stateNext = CRCCHECK;
                 crcNext = i_dataToRead;
-                fifoRxReadNext = 1'b0;
+                fifoRxReadNext = 1'b1;
+                auxNext = 1'b0;
             end
         end
 
         CRCCHECK: begin
+            fifoRxReadNext = 1'b0;
             if(o_validFlag) begin
                 stateNext = RESULT;
             end

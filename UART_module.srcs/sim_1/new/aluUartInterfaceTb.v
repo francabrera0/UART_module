@@ -29,6 +29,7 @@ reg fifoTxRead; //Used to see result
 wire fifoTxFull;
 wire [DATA_LEN-1:0] fifoTxDataToRead;
 
+reg rxDone;
 
 aluUartInterface#
 (
@@ -44,8 +45,7 @@ aluUartInterface#
     .i_fifoTxFull(fifoTxFull),
     .i_aluOverflow(),
     .i_aluZero(),
-    .i_txDone(),
-    .i_rxDone(),
+    .i_rxDone(rxDone),
 
     .o_fifoRxRead(fifoRxRead),
     .o_fifoTxWrite(fifoTxWrite),
@@ -117,42 +117,48 @@ initial begin
     fifoTxRead = 0; //Used to see result
 
     #10 reset = 0;
+
     fifoRxDataToWrite = 8'h20;
     fifoRxWrite = 1'b1;
+    rxDone = 1'b1;
     #10;
-    fifoRxWrite = 1'b0;
     fifoRxDataToWrite = 8'h05;
-    fifoRxWrite = 1'b1;
     #10;
-    fifoRxWrite = 1'b0;
     fifoRxDataToWrite = 8'h0a;
-    fifoRxWrite = 1'b1;
     #10;
-    fifoRxWrite = 1'b0;
     fifoRxDataToWrite = 8'hd0;
-    fifoRxWrite = 1'b1;
     #10;
     fifoRxWrite = 1'b0;
+    #60;
+    rxDone = 1'b0;
+    #50;
+    fifoTxRead = 1'b1;
+    #10;
+    fifoTxRead = 1'b0;
+    #30;
 
     fifoRxDataToWrite = 8'h22;
     fifoRxWrite = 1'b1;
+    rxDone = 1'b1;
     #10;
-    fifoRxWrite = 1'b0;
     fifoRxDataToWrite = 8'h0a;
-    fifoRxWrite = 1'b1;
     #10;
-    fifoRxWrite = 1'b0;
     fifoRxDataToWrite = 8'h05;
-    fifoRxWrite = 1'b1;
     #10;
-    fifoRxWrite = 1'b0;
     fifoRxDataToWrite = 8'hd2;
-    fifoRxWrite = 1'b1;
     #10;
     fifoRxWrite = 1'b0;
-
-    #80;
+    #60;
+    rxDone = 1'b0;
+    #50;
     fifoTxRead = 1'b1;
+    #10;
+    fifoTxRead = 1'b0;
+    #10;
+    fifoTxRead = 1'b1;
+    #10;
+    fifoTxRead = 1'b0;
+
 
 end
 
