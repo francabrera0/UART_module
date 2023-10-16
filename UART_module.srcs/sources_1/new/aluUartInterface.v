@@ -97,9 +97,6 @@ always @(*) begin
                 fifoRxReadNext = 1'b1;
                 auxNext = 1'b1;
             end
-            else begin
-                fifoRxReadNext = 0'b0;
-            end
             if(~i_fifoRxEmpty && auxReg) begin
                 stateNext = OPERANDA;
                 opSelectorNext = i_dataToRead[OP_LEN-1:0];
@@ -113,9 +110,6 @@ always @(*) begin
                 fifoRxReadNext = 1'b1;
                 auxNext = 1'b1;
             end
-            else begin
-                fifoRxReadNext = 0'b0;
-            end
             if(~i_fifoRxEmpty && auxReg) begin
                 stateNext = OPERANDB;
                 operandANext = i_dataToRead;
@@ -128,9 +122,6 @@ always @(*) begin
             if(i_rxDone) begin
                 fifoRxReadNext = 1'b1;
                 auxNext = 1'b1;
-            end
-            else begin
-                fifoRxReadNext = 0'b0;
             end
             if(~i_fifoRxEmpty && auxReg) begin
                 stateNext = CRC;

@@ -79,13 +79,13 @@ initial begin
     #10;
     pcDataToWrite = 8'hd0;
     #10;
-    pcDataToWrite = 8'h20;
+    pcDataToWrite = 8'h02;
     #10;
     pcDataToWrite = 8'h06;
     #10;
-    pcDataToWrite = 8'h0a;
+    pcDataToWrite = 8'h01;
     #10;
-    pcDataToWrite = 8'hd3;
+    pcDataToWrite = 8'hfa;
     #10;
     writePcUart = 1'b0;
     
