@@ -25,7 +25,6 @@ wire [OP_LEN-1:0] aluOpSelector;
 wire [DATA_LEN-1:0] aluOperandA;
 wire [DATA_LEN-1:0] aluOperandB;
 
-wire rxDone;
 wire [DATA_LEN-1:0] aluResult;
 wire zero;
 wire overFlow;
@@ -49,8 +48,7 @@ uart#
     .o_txFull(txFull),
     .o_rxEmpty(rxEmpty),
     .o_uartTx(o_uartTx),
-    .o_dataToRead(dataToRead),
-    .o_rxDone(rxDone)
+    .o_dataToRead(dataToRead)
 );
 
 aluUartInterface#
@@ -67,7 +65,6 @@ aluUartInterface#
     .i_fifoTxFull(txFull),
     .i_aluOverflow(overFlow),
     .i_aluZero(zero),
-    .i_rxDone(rxDone),
 
     .o_fifoRxRead(rxRead),
     .o_fifoTxWrite(txWrite),

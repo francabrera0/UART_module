@@ -29,8 +29,6 @@ reg fifoTxRead; //Used to see result
 wire fifoTxFull;
 wire [DATA_LEN-1:0] fifoTxDataToRead;
 
-reg rxDone;
-
 aluUartInterface#
 (
     .DATA_LEN(DATA_LEN),
@@ -45,7 +43,6 @@ aluUartInterface#
     .i_fifoTxFull(fifoTxFull),
     .i_aluOverflow(),
     .i_aluZero(),
-    .i_rxDone(rxDone),
 
     .o_fifoRxRead(fifoRxRead),
     .o_fifoTxWrite(fifoTxWrite),
@@ -120,7 +117,6 @@ initial begin
 
     fifoRxDataToWrite = 8'h20;
     fifoRxWrite = 1'b1;
-    rxDone = 1'b1;
     #10;
     fifoRxDataToWrite = 8'h05;
     #10;
@@ -129,8 +125,6 @@ initial begin
     fifoRxDataToWrite = 8'hd0;
     #10;
     fifoRxWrite = 1'b0;
-    #60;
-    rxDone = 1'b0;
     #50;
     fifoTxRead = 1'b1;
     #10;
@@ -139,7 +133,6 @@ initial begin
 
     fifoRxDataToWrite = 8'h22;
     fifoRxWrite = 1'b1;
-    rxDone = 1'b1;
     #10;
     fifoRxDataToWrite = 8'h0a;
     #10;
@@ -148,8 +141,6 @@ initial begin
     fifoRxDataToWrite = 8'hd2;
     #10;
     fifoRxWrite = 1'b0;
-    #60;
-    rxDone = 1'b0;
     #50;
     fifoTxRead = 1'b1;
     #10;

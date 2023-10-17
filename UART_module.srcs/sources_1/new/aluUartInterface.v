@@ -12,7 +12,6 @@ module aluUartInterface#
     input wire i_fifoTxFull,
     input wire i_aluOverflow,
     input wire i_aluZero,
-    input wire i_rxDone,
 
     output wire o_fifoRxRead,
     output wire o_fifoTxWrite,
