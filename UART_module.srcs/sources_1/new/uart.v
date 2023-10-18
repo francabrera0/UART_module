@@ -1,5 +1,6 @@
 module uart#
 (
+    parameter TRANSMISSION_LEN = 8,
     parameter DATA_LEN = 8,
     parameter SB_TICK = 16,
     parameter COUNTER_MOD = 326,
@@ -41,7 +42,7 @@ modMCounter #
 
 uartRX #
 (
-    .DATA_LEN(DATA_LEN),
+    .DATA_LEN(TRANSMISSION_LEN),
     .SB_TICK(SB_TICK)
 ) uartRxUnit
 (
@@ -87,7 +88,7 @@ fifoBuffer #
 
 uartTX #
 (
-    .DATA_LEN(DATA_LEN),
+    .DATA_LEN(TRANSMISSION_LEN),
     .SB_TICK(SB_TICK)
 ) uartTxUnit
 (
