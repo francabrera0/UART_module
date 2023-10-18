@@ -22,17 +22,18 @@ module aluUartInterface#
     output wire o_validFlag
 );
 
-localparam [2:0] IDLE = 3'b000;
-localparam [2:0] OPSELECTOR = 3'b001;
-localparam [2:0] OPERANDA = 3'b010;
-localparam [2:0] OPERANDB = 3'b011;
-localparam [2:0] CRC = 3'b100;
-localparam [2:0] CRCCHECK= 3'b101;
-localparam [2:0] RESULT = 3'b110;
-localparam [2:0] CRCRESULT = 3'b111;
+localparam [3:0] IDLE = 4'b0000;
+localparam [3:0] OPSELECTOR = 4'b0001;
+localparam [3:0] OPERANDA = 4'b0010;
+localparam [3:0] OPERANDB = 4'b0011;
+localparam [3:0] CRC = 4'b0100;
+localparam [3:0] CRCCHECK= 4'b0101;
+localparam [3:0] RESULT = 4'b0110;
+localparam [3:0] CRCRESULT = 4'b0111;
+localparam [3:0] WAIT = 4'b1000;
 
 
-reg [2:0] stateReg, stateNext;
+reg [3:0] stateReg, stateNext;
 reg fifoRxReadReg, fifoRxReadNext;
 reg fifoTxWriteReg, fifoTxWriteNext;
 
@@ -41,6 +42,7 @@ reg [DATA_LEN-1:0] operandAReg, operandANext;
 reg [DATA_LEN-1:0] operandBReg, operandBNext;
 reg [DATA_LEN-1:0] resultReg, resultNext;
 reg [DATA_LEN-1:0] crcReg, crcNext;
+reg [3:0] waitReg, waitNext;
 
 wire [DATA_LEN-1:0] crc;
 
@@ -55,6 +57,7 @@ always @(posedge i_clk) begin
         operandBReg <= {DATA_LEN{1'b0}};
         resultReg <= {DATA_LEN{1'b0}};
         crcReg <= {DATA_LEN{1'b0}};
+        waitReg <= 4'b0000;
     end
     else begin
         stateReg <= stateNext;
@@ -65,6 +68,7 @@ always @(posedge i_clk) begin
         operandBReg <= operandBNext;
         resultReg <= resultNext;
         crcReg <= crcNext;
+        waitReg <= waitNext;
     end
 end
 
@@ -77,6 +81,7 @@ always @(*) begin
     operandBNext = operandBReg;
     resultNext = resultReg;
     crcNext = crcReg;
+    waitNext = waitReg;
 
     case (stateReg)
         IDLE: begin
@@ -87,9 +92,18 @@ always @(*) begin
             end
         end
         
+        WAIT: begin
+            if(~i_fifoRxEmpty) begin
+                stateNext = waitReg;
+                fifoRxReadNext = 1'b1;
+            end
+        end
+        
         OPSELECTOR: begin
             if(i_fifoRxEmpty) begin
                 fifoRxReadNext = 1'b0;
+                stateNext = WAIT;
+                waitNext = OPSELECTOR;
             end
             else begin
                 stateNext = OPERANDA;
@@ -101,6 +115,8 @@ always @(*) begin
         OPERANDA: begin
             if(i_fifoRxEmpty) begin
                 fifoRxReadNext = 1'b0;
+                stateNext = WAIT;
+                waitNext = OPERANDA;
             end
             else begin
                 stateNext = OPERANDB;
@@ -112,6 +128,8 @@ always @(*) begin
         OPERANDB: begin
             if(i_fifoRxEmpty) begin
                 fifoRxReadNext = 1'b0;
+                stateNext = WAIT;
+                waitNext = OPERANDB;
             end
             else begin
                 stateNext = CRC;
@@ -123,6 +141,8 @@ always @(*) begin
         CRC: begin
             if(i_fifoRxEmpty) begin
                 fifoRxReadNext = 1'b0;
+                stateNext = WAIT;
+                waitNext = CRC;
             end
             else begin
                 stateNext = CRCCHECK;

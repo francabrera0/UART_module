@@ -18,6 +18,9 @@ wire [DATA_LEN-1:0] operandA;
 wire [DATA_LEN-1:0] operandB;
 wire validFlag;
 
+wire aluZero;
+wire aluOverflow;
+
 reg fifoRxWrite; //used to store data in fifo
 reg [DATA_LEN-1:0] fifoRxDataToWrite;
 
@@ -41,8 +44,8 @@ aluUartInterface#
     .i_dataToRead(fifoRxDataToRead),
     .i_fifoRxEmpty(fifoRxEmpty),
     .i_fifoTxFull(fifoTxFull),
-    .i_aluOverflow(),
-    .i_aluZero(),
+    .i_aluOverflow(aluOverflow),
+    .i_aluZero(aluZero),
 
     .o_fifoRxRead(fifoRxRead),
     .o_fifoTxWrite(fifoTxWrite),
@@ -97,8 +100,8 @@ alu#
     .i_operandB(operandB),
     .i_opSelector(opSelector),
     .o_aluResult(aluResult),
-    .o_zero(),
-    .o_overFlow()
+    .o_zero(aluZero),
+    .o_overFlow(aluOverflow)
 ); 
 
 
