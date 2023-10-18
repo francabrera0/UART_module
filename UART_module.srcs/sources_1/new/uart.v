@@ -16,13 +16,11 @@ module uart#
     output wire o_txFull,
     output wire o_rxEmpty,
     output wire o_uartTx,
-    output wire [DATA_LEN-1 : 0] o_dataToRead,
-    output wire o_rxDone
+    output wire [DATA_LEN-1 : 0] o_dataToRead
 );
 
 //Signal declaration
 wire tick;
-wire rxDone;
 wire txDone;
 wire txEmpty;
 wire txNotEmpty;
@@ -103,6 +101,5 @@ uartTX #
 );
 
 assign txNotEmpty = ~txEmpty;
-assign o_rxDone = rxDone;
 
 endmodule
